@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Tally Timer</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    html {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      padding: 0;
+      margin: 0;
+      font-size: 20px;
+    }
+
+    body {
+      background-color: hsl(211deg 43% 95%);
+      color: hsl(213deg 19% 31%);
+      margin: 0;
+      padding: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    #tallies span {
+      border-bottom: 3px solid transparent;
+      letter-spacing: 1px;
+      display: inline-block;
+      font-weight: bold;
+      padding-block-end: 0.3em;
+      padding-block-start: 0.3em;
+      margin-inline-end: 0.3em;
+      margin-block-end: 0.3em;
+    }
+
+    #tallies .group {
+      border-color: hsl(211deg 88% 36%);
+;
+    } 
+
+    #time {
+      font-family: 'Roboto Mono', monospace;
+      font-weight: bold;
+      font-size: 66px;
+      color: hsl(213deg 19% 31%);
+      margin-block-end: 0.75rem;
+    }
+
+    .bottom {
+      text-align: center;
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      bottom: 2rem;
+      padding: 20px;
+    }
+
+    input[type="submit"] {
+      text-transform: uppercase;
+      font-weight: 700;
+      transition: 0.1s all;
+      position: relative;
+      top: 0;
+      appearance: none;
+      border: none;
+      font-size: 1rem;
+      background-color: hsl(211deg 43% 95%);
+      border-radius: 0.6em;
+      padding: 0.4em 0.7em;
+      line-height: 1;
+      color: hsl(213deg 19% 31%);
+      box-shadow: inset 0 0.07em 0.07em hsl(211deg 43% 99%),
+                  inset 0.07em 0 0.07em hsl(211deg 43% 97%),
+                  inset -0.07em 0 0.07em hsl(211deg 43% 97%),
+                  inset 0 -0.07em 0.07em hsl(211deg 50% 70%),
+                  0 0.04em 0.1em 0.02em hsl(211deg 43% 70%),
+                  0 0.04em 0.5em 0.1em hsl(211deg 43% 70% / 30%);
+    }
+
+    input[type="submit"]:not(:last-child) {
+      margin-inline-end: 0.3em;
+      letter-spacing: 1px;
+      color: hsl(211deg 43% 93%);
+      background-color: hsl(211deg 88% 36%);
+      box-shadow: inset 0 0.07em 0.07em hsl(211deg 88% 45%),
+                  inset 0.07em 0 0.07em hsl(211deg 88% 40%),
+                  inset -0.07em 0 0.07em hsl(211deg 88% 40%),
+                  inset 0 -0.07em 0.07em hsl(211deg 88% 20%),
+                  0 0.04em 0.1em 0.02em hsl(211deg 88% 20%),
+                  0 0.04em 0.5em 0.1em hsl(211deg 88% 70% / 90%);
+    }
+
+    input[type="submit"]:hover,
+    input[type="submit"]:focus-visible {
+      filter: brightness(1.05);
+    }
+
+    input[type="submit"]:active {
+      top: 0.05em;
+      transform: scale(0.99);
+      filter: brightness(1) drop-shadow(0 0 0.3em hsl(211deg 43% 95%));
+    }
+  </style>
+</head>
+<body>
+  <div id="tallies"><span></span></div>
+
+  <div class="bottom">
+    <div id="time">00:00.00</div>
+    <form>
+      <input type="submit" value="timer" />
+      <input type="submit" value="reset" />
+    </form>
+  </div>
+
+  <script>
+    const talliesEl = document.getElementById("tallies");
+    const timeEl = document.getElementById("time");
+    const formEl = document.querySelector("form");
+
+    let lastZero = performance.now();
+
+    formEl.addEventListener("submit", function(event) {
+      event.preventDefault();
+      const action = event.submitter.value;
+      const group = talliesEl.querySelector('span:last-child');
+      lastZero = performance.now();
+
+      if (action === "timer") {
+        group.appendChild(document.createTextNode('|'));
+        return;
+      }
+
+      if (group.innerHTML === '') {
+        return;
+      }
+
+      group.classList.add('group');
+      talliesEl.appendChild(document.createElement('span'));
+    });
+
+    function updateTimer(t) {
+      timeEl.innerHTML = new Date(t - lastZero).toISOString().substring(14, 22);
+      const lastGroup = tallies[tallies.length - 1];
+      requestAnimationFrame(updateTimer);
+    };
+
+    requestAnimationFrame(updateTimer);
+  </script>
+</body>
+</html>
