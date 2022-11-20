@@ -114,7 +114,7 @@
   <div class="bottom">
     <div id="time">00:00.00</div>
     <form>
-      <input type="submit" value="timer" />
+      <input type="submit" value="tally" />
       <input type="submit" value="reset" />
     </form>
   </div>
@@ -132,7 +132,7 @@
       const group = talliesEl.querySelector('span:last-child');
       lastZero = performance.now();
 
-      if (action === "timer") {
+      if (action === "tally") {
         group.appendChild(document.createTextNode('|'));
         return;
       }
