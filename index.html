@@ -25,27 +25,16 @@
       box-sizing: border-box;
     }
 
-    .tallies {
+    .count {
+      font-size: 100px;
       text-align: center;
-      padding-bottom: 200px;
-    }
-
-    .tallies span {
-      margin-right: 10px;
-      padding-bottom: 3px;
-      display: inline-block;
-      border-bottom: 4px solid transparent;
-      font-size: 40px;
-    }
-
-    .tallies .group {
-      border-bottom-color: green;
+      margin-top: 15vh;
     }
 
     .time {
       font-family: 'Courier New', Courier, monospace;
       font-weight: bold;
-      font-size: 60px;
+      font-size: 90px;
       margin-bottom: 20px;
     }
 
@@ -77,18 +66,18 @@
   </style>
 </head>
 <body>
-  <div id="tallies" class="tallies"><span></span></div>
+  <div id="count" class="count">0</div>
 
   <div class="bottom">
     <div id="time" class="time">00:00.00</div>
     <form>
       <input type="submit" value="count" />
-      <input type="submit" value="new" />
+      <input type="submit" value="reset" />
     </form>
   </div>
 
   <script>
-    const talliesEl = document.getElementById("tallies");
+    const countEl = document.getElementById("count");
     const timeEl = document.getElementById("time");
     const formEl = document.querySelector("form");
 
@@ -97,26 +86,19 @@
     formEl.addEventListener("submit", function(event) {
       event.preventDefault();
       const action = event.submitter.value;
-      const group = talliesEl.querySelector('span:last-child');
       lastZero = performance.now();
 
       if (action === "count") {
-        const current = group.innerText !== '' ? parseInt(group.innerText) : 0;
-        group.innerHTML = current + 1;
+        const current = countEl.innerText !== '' ? parseInt(countEl.innerText) : 0;
+        countEl.innerHTML = current + 1;
         return;
       }
 
-      if (group.innerHTML === '') {
-        return;
-      }
-
-      group.classList.add('group');
-      talliesEl.appendChild(document.createElement('span'));
+      countEl.innerHTML = '0'
     });
 
     function updateTimer(t) {
-      timeEl.innerHTML = new Date(t - lastZero).toISOString().substring(14, 22);
-      const lastGroup = tallies[tallies.length - 1];
+      timeEl.innerHTML = new Date(t - lastZero).toISOString().substring(14, 19);
       requestAnimationFrame(updateTimer);
     };
 
