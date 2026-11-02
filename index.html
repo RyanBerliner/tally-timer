@@ -81,24 +81,28 @@
     const timeEl = document.getElementById("time");
     const formEl = document.querySelector("form");
 
-    let lastZero = performance.now();
+    let lastZero = Number(localStorage.getItem("lastZero")) || Date.now();
+    countEl.innerText = localStorage.getItem("count") || '0';
+    localStorage.setItem("lastZero", lastZero);
 
     formEl.addEventListener("submit", function(event) {
       event.preventDefault();
       const action = event.submitter.value;
-      lastZero = performance.now();
+      lastZero = Date.now();
+      localStorage.setItem("lastZero", lastZero);
 
       if (action === "count") {
         const current = countEl.innerText !== '' ? parseInt(countEl.innerText) : 0;
         countEl.innerHTML = current + 1;
-        return;
+      } else {
+        countEl.innerHTML = '0';
       }
 
-      countEl.innerHTML = '0'
+      localStorage.setItem("count", countEl.innerText);
     });
 
-    function updateTimer(t) {
-      timeEl.innerHTML = new Date(t - lastZero).toISOString().substring(14, 19);
+    function updateTimer() {
+      timeEl.innerHTML = new Date(Date.now() - lastZero).toISOString().substring(14, 19);
       requestAnimationFrame(updateTimer);
     };
 
