@@ -6,80 +6,127 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <style>
-    html {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      padding: 0;
-      margin: 0;
-      font-size: 20px;
-    }
-
-    body,
-    .bottom {
-      margin: 0 auto;
-      padding: 20px;
-      width: 100%;
-      max-width: 500px;
-    }
-
     * {
       box-sizing: border-box;
     }
 
-    .count {
-      font-size: 100px;
+    html {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      font-size: 16px;
+      padding: 0;
+      margin: 0;
       text-align: center;
-      margin-top: 15vh;
+    }
+
+    #count, #minutes, #seconds {
+      font-variant-numeric: tabular-nums;
+    }
+
+    #minutes {
+      display: inline-block;
     }
 
     .time {
-      font-family: 'Courier New', Courier, monospace;
+      margin-top: 15vh;
+      font-size: 100px;
       font-weight: bold;
-      font-size: 90px;
-      margin-bottom: 20px;
     }
 
-    .bottom {
+    .time-label {
+      font-size: 0.5em;
+    }
+
+    .count {
+      font-size: 50px;
+    }
+
+    .bottom-form {
       position: fixed;
       bottom: 0;
       left: 50%;
       width: 100%;
+      max-width: 500px;
       transform: translateX(-50%);
-      text-align: center;
-      background: black;
-      color: white;
-    }
-
-    form {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      padding: 0 1rem;
     }
 
     input[type="submit"] {
+      --button-background: #f2f2f7;
+      --button-color: #007aff;
+      --button-hover-background: #e5e5ea;
+      --button-active-background: #d1d1d6;
+      --button-focus: rgba(0, 122, 255, 0.45);
+      --button-shadow: rgba(0, 122, 255, 0.2);
+
       appearance: none;
-      background: white;
-      color: black;
-      width: calc(50% - 10px);
-      padding: 20px;
+      background: var(--button-background);
+      color: var(--button-color);
+      width: 100%;
+      padding: 18px 24px;
       border: none;
-      font-size: 20px;
+      border-radius: 16px;
+      font-size: 22px;
+      font-weight: 600;
+      transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+      margin-bottom: 1rem;
+      text-transform: capitalize;
+      cursor: pointer;
+    }
+
+    input[type="submit"]:hover {
+      background: var(--button-hover-background);
+    }
+
+    input[type="submit"]:active {
+      background: var(--button-active-background);
+      transform: scale(0.98);
+    }
+
+    input[type="submit"]:focus-visible {
+      outline: 3px solid var(--button-focus);
+      outline-offset: 2px;
+    }
+
+    input[type="submit"].primary {
+      --button-background: #007aff;
+      --button-color: #ffffff;
+      --button-hover-background: #0071eb;
+      --button-active-background: #0062cc;
+
+      box-shadow: 0 3px 8px var(--button-shadow);
+
+    @media (prefers-reduced-motion: reduce) {
+      input[type="submit"] {
+        transition: none;
+      }
+
+      input[type="submit"]:active {
+        transform: none;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="count" class="count">0</div>
-
-  <div class="bottom">
-    <div id="time" class="time">00:00.00</div>
-    <form>
-      <input type="submit" value="count" />
-      <input type="submit" value="reset" />
-    </form>
+  <div class="time">
+    <span id="minutes">00</span><span class="time-label">m</span> 
+    <span id="seconds">00</span><span class="time-label">s</span>
   </div>
+
+  <div class="count">Count <span id="count">0</span></div>
+
+  <form class="bottom-form">
+    <input type="submit" value="count" class="primary" />
+    <input type="submit" value="reset" />
+  </form>
 
   <script>
     const countEl = document.getElementById("count");
-    const timeEl = document.getElementById("time");
+    const minutesEl = document.getElementById("minutes");
+    const secondsEl = document.getElementById("seconds");
     const formEl = document.querySelector("form");
+    let lastMinute = 0;
 
     let lastZero = Number(localStorage.getItem("lastZero")) || Date.now();
     countEl.innerText = localStorage.getItem("count") || '0';
@@ -88,6 +135,7 @@
     formEl.addEventListener("submit", function(event) {
       event.preventDefault();
       const action = event.submitter.value;
+      lastMinute = 0;
       lastZero = Date.now();
       localStorage.setItem("lastZero", lastZero);
 
@@ -101,8 +149,30 @@
       localStorage.setItem("count", countEl.innerText);
     });
 
+    function pulse() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      minutesEl.animate([
+        { transform: 'translateY(0)', opacity: 1 },
+        { transform: 'translateY(-3px)', opacity: 0.8, offset: 0.35 },
+        { transform: 'translateY(0)', opacity: 1 }
+      ], {
+        duration: 420,
+        easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
+      });
+    }
+
     function updateTimer() {
-      timeEl.innerHTML = new Date(Date.now() - lastZero).toISOString().substring(14, 19);
+      const ms = Date.now() - lastZero;
+      const minutes = String(Math.floor(ms / 1000 / 60)).padStart(2, '0');
+      const seconds = String(Math.floor(ms / 1000) % 60).padStart(2, '0');
+
+      if (minutes > lastMinute) pulse();
+
+      minutesEl.innerText = minutes;
+      secondsEl.innerText = seconds;
+      lastMinute = minutes;
+
       requestAnimationFrame(updateTimer);
     };
 
