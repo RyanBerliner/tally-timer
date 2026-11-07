@@ -27,8 +27,8 @@
     }
 
     .time {
-      margin-top: 15vh;
-      font-size: 100px;
+      margin-top: 1rem;
+      font-size: 90px;
       font-weight: bold;
     }
 
@@ -36,8 +36,10 @@
       font-size: 0.5em;
     }
 
-    .count {
-      font-size: 50px;
+    #count {
+      font-size: 200px;
+      color: #d1d1d6;
+      font-weight: bold;
     }
 
     .bottom-form {
@@ -96,6 +98,7 @@
       --button-active-background: #0062cc;
 
       box-shadow: 0 3px 8px var(--button-shadow);
+    }
 
     @media (prefers-reduced-motion: reduce) {
       input[type="submit"] {
@@ -114,7 +117,7 @@
     <span id="seconds">00</span><span class="time-label">s</span>
   </div>
 
-  <div class="count">Count <span id="count">0</span></div>
+  <div id="count">0</div>
 
   <form class="bottom-form">
     <input type="submit" value="count" class="primary" />
@@ -126,11 +129,12 @@
     const minutesEl = document.getElementById("minutes");
     const secondsEl = document.getElementById("seconds");
     const formEl = document.querySelector("form");
-    let lastMinute = 0;
 
     let lastZero = Number(localStorage.getItem("lastZero")) || Date.now();
     countEl.innerText = localStorage.getItem("count") || '0';
     localStorage.setItem("lastZero", lastZero);
+
+    let lastMinute = Math.floor(Date.now() - lastZero / 1000 / 60);
 
     formEl.addEventListener("submit", function(event) {
       event.preventDefault();
@@ -142,6 +146,7 @@
       if (action === "count") {
         const current = countEl.innerText !== '' ? parseInt(countEl.innerText) : 0;
         countEl.innerHTML = current + 1;
+        pulse(countEl);
       } else {
         countEl.innerHTML = '0';
       }
@@ -149,10 +154,10 @@
       localStorage.setItem("count", countEl.innerText);
     });
 
-    function pulse() {
+    function pulse(element) {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-      minutesEl.animate([
+      element.animate([
         { transform: 'translateY(0)', opacity: 1 },
         { transform: 'translateY(-3px)', opacity: 0.8, offset: 0.35 },
         { transform: 'translateY(0)', opacity: 1 }
@@ -164,14 +169,14 @@
 
     function updateTimer() {
       const ms = Date.now() - lastZero;
-      const minutes = String(Math.floor(ms / 1000 / 60)).padStart(2, '0');
-      const seconds = String(Math.floor(ms / 1000) % 60).padStart(2, '0');
+      let minutes = Math.floor(ms / 1000 / 60);
+      let seconds = Math.floor(ms / 1000) % 60;
 
-      if (minutes > lastMinute) pulse();
-
-      minutesEl.innerText = minutes;
-      secondsEl.innerText = seconds;
+      if (minutes > lastMinute) pulse(minutesEl);
       lastMinute = minutes;
+
+      minutesEl.innerText = String(minutes).padStart(2, '0');
+      secondsEl.innerText = String(seconds).padStart(2, '0');
 
       requestAnimationFrame(updateTimer);
     };
