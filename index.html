@@ -91,12 +91,9 @@
       display: contents;
     }
 
-    input[value="count"] {
-      grid-row: 6;
-    }
-
     input[value="reset"] {
       grid-row: 6;
+      grid-column: 1 / -1;
     }
     input[type="submit"] {
       --button-background: #f2f2f7;
@@ -167,7 +164,6 @@
   <div id="count" role="img" aria-label="0 tallies"></div>
 
   <form class="bottom-form">
-    <input type="submit" value="count" class="primary" />
     <input type="submit" value="reset" />
   </form>
 
@@ -194,21 +190,23 @@
 
     let previousMacro = null;
 
-    formEl.addEventListener("submit", function(event) {
-      event.preventDefault();
-      const action = event.submitter.value;
+    document.addEventListener("click", function(event) {
+      if (event.target.closest("form")) return;
+
       lastZero = Date.now();
       localStorage.setItem("lastZero", lastZero);
+      count += 1;
+      renderCount();
+      pulse(countEl);
+      localStorage.setItem("count", count);
+    });
 
-      if (action === "count") {
-        count += 1;
-        renderCount();
-        pulse(countEl);
-      } else {
-        count = 0;
-        renderCount();
-      }
-
+    formEl.addEventListener("submit", function(event) {
+      event.preventDefault();
+      lastZero = Date.now();
+      localStorage.setItem("lastZero", lastZero);
+      count = 0;
+      renderCount();
       localStorage.setItem("count", count);
     });
 
