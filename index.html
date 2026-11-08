@@ -68,12 +68,26 @@
     #count {
       grid-column: 2;
       grid-row: 1 / 3;
-      justify-self: center;
-      writing-mode: vertical-lr;
-      text-transform: uppercase;
-      font-size: clamp(1rem, 20vh, 127px);
-      color: #d1d1d6;
-      font-weight: bold;
+      align-self: stretch;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-auto-rows: minmax(0, 1fr);
+      align-content: stretch;
+      justify-content: center;
+      gap: 8px;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 0.2rem;
+    }
+
+    .tally-mark {
+      width: 100%;
+      height: 100%;
+      background: #d1d1d6;
+    }
+
+    .tally-mark.counted {
+      background: #007aff;
     }
 
     .bottom-form {
@@ -154,7 +168,7 @@
     <span id="micro">00</span><span class="time-label">seconds</span>
   </div>
 
-  <div id="count">00</div>
+  <div id="count" role="img" aria-label="0 tallies"></div>
 
   <form class="bottom-form">
     <input type="submit" value="count" class="primary" />
@@ -178,7 +192,8 @@
     const formEl = document.querySelector("form");
 
     let lastZero = Number(localStorage.getItem("lastZero")) || Date.now();
-    countEl.innerText = String(localStorage.getItem("count") || '0').padStart(2, '0');
+    let count = Number(localStorage.getItem("count")) || 0;
+    renderCount();
     localStorage.setItem("lastZero", lastZero);
 
     let previousMacro = null;
@@ -190,15 +205,27 @@
       localStorage.setItem("lastZero", lastZero);
 
       if (action === "count") {
-        const current = countEl.innerText !== '' ? parseInt(countEl.innerText) : 0;
-        countEl.innerHTML = String(current + 1).padStart(2, '0');
+        count += 1;
+        renderCount();
         pulse(countEl);
       } else {
-        countEl.innerHTML = '00';
+        count = 0;
+        renderCount();
       }
 
-      localStorage.setItem("count", countEl.innerText);
+      localStorage.setItem("count", count);
     });
+
+    function renderCount() {
+      const slots = Math.max(5, Math.ceil(count / 5) * 5);
+      countEl.replaceChildren(...Array.from({ length: slots }, (_, index) => {
+        const mark = document.createElement("span");
+        mark.className = index < count ? "tally-mark counted" : "tally-mark";
+        mark.setAttribute("aria-hidden", "true");
+        return mark;
+      }));
+      countEl.setAttribute("aria-label", `${count} tallies`);
+    }
 
     function pulse(element) {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
