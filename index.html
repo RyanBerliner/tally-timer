@@ -31,11 +31,11 @@
       align-items: center;
     }
 
-    #count, #minutes, #seconds {
+    #count, #macro, #micro {
       font-variant-numeric: tabular-nums;
     }
 
-    #minutes {
+    #macro {
       display: inline-block;
     }
 
@@ -48,12 +48,12 @@
       font-weight: bold;
     }
 
-    .time.minutes {
+    .time.macro {
       grid-row: 1;
       align-self: end;
     }
 
-    .time.seconds {
+    .time.micro {
       grid-row: 2;
       align-self: start;
     }
@@ -147,11 +147,11 @@
   </style>
 </head>
 <body>
-  <div class="time minutes">
-    <span id="minutes">00</span><span class="time-label">minutes</span>
+  <div class="time macro">
+    <span id="macro">00</span><span class="time-label">minutes</span>
   </div>
-  <div class="time seconds">
-    <span id="seconds">00</span><span class="time-label">seconds</span>
+  <div class="time micro">
+    <span id="micro">00</span><span class="time-label">seconds</span>
   </div>
 
   <div id="count">00</div>
@@ -163,20 +163,29 @@
 
   <script>
     const countEl = document.getElementById("count");
-    const minutesEl = document.getElementById("minutes");
-    const secondsEl = document.getElementById("seconds");
+    const macroEl = document.getElementById("macro");
+    const microEl = document.getElementById("micro");
+    const macroLabelEl = document.querySelector(".time.macro .time-label");
+    const microLabelEl = document.querySelector(".time.micro .time-label");
+    const timeUnits = [
+      { label: "years", duration: 365.25 * 24 * 60 * 60 * 1000 },
+      { label: "weeks", duration: 7 * 24 * 60 * 60 * 1000 },
+      { label: "days", duration: 24 * 60 * 60 * 1000 },
+      { label: "hours", duration: 60 * 60 * 1000 },
+      { label: "minutes", duration: 60 * 1000 },
+      { label: "seconds", duration: 1000 }
+    ];
     const formEl = document.querySelector("form");
 
     let lastZero = Number(localStorage.getItem("lastZero")) || Date.now();
     countEl.innerText = String(localStorage.getItem("count") || '0').padStart(2, '0');
     localStorage.setItem("lastZero", lastZero);
 
-    let lastMinute = Math.floor(Date.now() - lastZero / 1000 / 60);
+    let previousMacro = null;
 
     formEl.addEventListener("submit", function(event) {
       event.preventDefault();
       const action = event.submitter.value;
-      lastMinute = 0;
       lastZero = Date.now();
       localStorage.setItem("lastZero", lastZero);
 
@@ -206,14 +215,25 @@
 
     function updateTimer() {
       const ms = Date.now() - lastZero;
-      let minutes = Math.floor(ms / 1000 / 60);
-      let seconds = Math.floor(ms / 1000) % 60;
 
-      if (minutes > lastMinute) pulse(minutesEl);
-      lastMinute = minutes;
+      let remaining = ms;
+      const values = timeUnits.map(({ duration }) => {
+        const value = Math.floor(remaining / duration);
+        remaining %= duration;
+        return value;
+      });
+      const firstNonzero = values.findIndex(value => value > 0);
+      const macroIndex = firstNonzero === -1 || firstNonzero > 4 ? 4 : firstNonzero;
+      const microIndex = macroIndex + 1;
+      const currentMacro = `${values[macroIndex]} ${timeUnits[macroIndex].label}`;
 
-      minutesEl.innerText = String(minutes).padStart(2, '0');
-      secondsEl.innerText = String(seconds).padStart(2, '0');
+      if (previousMacro !== null && currentMacro !== previousMacro) pulse(macroEl);
+      previousMacro = currentMacro;
+
+      macroEl.innerText = String(values[macroIndex]).padStart(2, '0');
+      macroLabelEl.innerText = timeUnits[macroIndex].label;
+      microEl.innerText = String(values[microIndex]).padStart(2, '0');
+      microLabelEl.innerText = timeUnits[microIndex].label;
 
       requestAnimationFrame(updateTimer);
     };
