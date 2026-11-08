@@ -18,6 +18,19 @@
       text-align: center;
     }
 
+    body {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      grid-template-rows: repeat(2, minmax(0, 1fr)) auto auto;
+      gap: 1rem;
+      height: 100vh;
+      height: 100dvh;
+      margin: 0 auto;
+      max-width: 500px;
+      padding: 1rem;
+      align-items: center;
+    }
+
     #count, #minutes, #seconds {
       font-variant-numeric: tabular-nums;
     }
@@ -27,34 +40,61 @@
     }
 
     .time {
-      margin-top: 1rem;
-      font-size: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      grid-column: 1;
+      font-size: clamp(1rem, 35vw, 200px);
       font-weight: bold;
+    }
+
+    .time.minutes {
+      grid-row: 1;
+      align-self: end;
+    }
+
+    .time.seconds {
+      grid-row: 2;
+      align-self: start;
     }
 
     .time-label {
-      font-size: 0.5em;
+      font-size: 0.12em;
+      color: #d1d1d6;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .count {
+      grid-column: 2;
+      grid-row: 1 / 3;
+      writing-mode: vertical-lr;
+      text-orientation: upright;
+      text-transform: uppercase;
+      font-size: clamp(1rem, 8vh, 73px);
+      color: #d1d1d6;
+      font-weight: bold;
+      letter-spacing: -0.2em;
+      word-spacing: -0.8em;
     }
 
     #count {
-      font-size: 200px;
-      color: #d1d1d6;
-      font-weight: bold;
+      display: inline-block;
     }
 
     .bottom-form {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      width: 100%;
-      max-width: 500px;
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      padding: 0 1rem;
+      display: contents;
     }
 
+    input[value="count"] {
+      grid-row: 3;
+    }
+
+    input[value="reset"] {
+      grid-row: 4;
+    }
     input[type="submit"] {
+      grid-column: 1 / 3;
       --button-background: #f2f2f7;
       --button-color: #007aff;
       --button-hover-background: #e5e5ea;
@@ -72,7 +112,7 @@
       font-size: 22px;
       font-weight: 600;
       transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
-      margin-bottom: 1rem;
+      margin-bottom: 0;
       text-transform: capitalize;
       cursor: pointer;
     }
@@ -112,12 +152,17 @@
   </style>
 </head>
 <body>
-  <div class="time">
-    <span id="minutes">00</span><span class="time-label">m</span> 
-    <span id="seconds">00</span><span class="time-label">s</span>
+  <div class="time minutes">
+    <span id="minutes">00</span><span class="time-label">minutes</span>
+  </div>
+  <div class="time seconds">
+    <span id="seconds">00</span><span class="time-label">seconds</span>
   </div>
 
-  <div id="count">0</div>
+  <div class="count">
+    Count
+    <span id="count">00</span>
+  </div>
 
   <form class="bottom-form">
     <input type="submit" value="count" class="primary" />
@@ -131,7 +176,7 @@
     const formEl = document.querySelector("form");
 
     let lastZero = Number(localStorage.getItem("lastZero")) || Date.now();
-    countEl.innerText = localStorage.getItem("count") || '0';
+    countEl.innerText = String(localStorage.getItem("count") || '0').padStart(2, '0');
     localStorage.setItem("lastZero", lastZero);
 
     let lastMinute = Math.floor(Date.now() - lastZero / 1000 / 60);
@@ -145,10 +190,10 @@
 
       if (action === "count") {
         const current = countEl.innerText !== '' ? parseInt(countEl.innerText) : 0;
-        countEl.innerHTML = current + 1;
+        countEl.innerHTML = String(current + 1).padStart(2, '0');
         pulse(countEl);
       } else {
-        countEl.innerHTML = '0';
+        countEl.innerHTML = '00';
       }
 
       localStorage.setItem("count", countEl.innerText);
